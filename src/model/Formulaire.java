@@ -1,12 +1,9 @@
 package model;
 
-public class Formulaire {
-	private int jour;
-	private int mois;
+public interface Formulaire {
+
+	public int getJour();
+	public int getMois();
 	
-	public Formulaire(int jour,int mois) {
-		this.jour=jour;
-		this.mois=mois;
-	}
 
 }
