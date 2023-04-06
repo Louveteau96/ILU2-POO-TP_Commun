@@ -1,7 +1,8 @@
 package model;
 
-public class Restaurant implements IEtablissement {
+public class Restaurant {
 	private Table[] tables = new Table[100];
+	private CentraleReservation<EntiteReservable<FormulaireRestaurant>, FormulaireRestaurant> centraleReservation;
 	
 	public void ajouterTable(int nbrChaise) {
 		
@@ -12,20 +13,19 @@ public class Restaurant implements IEtablissement {
 	}
 	
 	public Reservation reserver(int numEntite, FormulaireRestaurant formulaire) {
-		return null;
+		return tables[numEntite].reserver(formulaire);
 	}
 	
 	
 	
 	//Classe Interne Table
 	
-	public class Table extends EntiteReservable<FormulaireRestaurant> {
+	private class Table extends EntiteReservable<FormulaireRestaurant> {
 		private int nbrChaises;
 		private CalendrierAnnuel carnetReservation;
+		private CalendrierAnnuel calendrierDeuxiemeService;
 		private int identifiant;
 		private FormulaireRestaurant formulaire;
-		private CalendrierAnnuel calendrierDeuxiemeService;
-		private CentraleReservation<EntiteReservable<FormulaireRestaurant>, FormulaireRestaurant> centraleReservation;
 		
 
 		public Table(CalendrierAnnuel carnetReservation, int identifiant, FormulaireRestaurant formulaire, int nbrChaises) {
@@ -36,14 +36,39 @@ public class Restaurant implements IEtablissement {
 
 		@Override
 		public Reservation reserver(FormulaireRestaurant formulaire) {
-			// TODO Auto-generated method stub
-			return null;
+			int jour = formulaire.getJour();
+			int mois = formulaire.getMois();
+			int numService = formulaire.getNumService();
+			if(numService==1) {
+				if(!carnetReservation.estLibre(jour, mois)) {
+					return null;
+				}
+				carnetReservation.reserver(jour,mois);
+				return new ReservationRestaurant(jour, mois, numService, identifiant);
+			}
+			else {
+				if(!calendrierDeuxiemeService.estLibre(jour, mois)) {
+					return null;
+				}
+				calendrierDeuxiemeService.reserver(jour, mois);
+				return new ReservationRestaurant(jour, mois, numService, identifiant);
+			}
+
 		}
 
 
 		@Override
 		public boolean compatible(FormulaireRestaurant formulaire) {
-			return (formulaire.getNombrePersonnes() == nbrChaises);
+			int numService = formulaire.getNumService();
+			if(numService==1) {
+				return (formulaire.getNombrePersonnes() == nbrChaises && estLibre(formulaire));
+			}
+			else {
+				int jour = formulaire.getJour();
+				int mois = formulaire.getMois();
+				return (formulaire.getNombrePersonnes() == nbrChaises && calendrierDeuxiemeService.estLibre(jour, mois));
+			}
+			
 		}
 
 
